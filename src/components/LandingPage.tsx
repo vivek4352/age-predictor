@@ -7,17 +7,30 @@ const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const [dob, setDob] = useState('');
     const [showToast, setShowToast] = useState(false);
+    const [countdown, setCountdown] = useState<number | null>(null);
 
     const handleAnalyze = () => {
-        if (dob.trim().length > 0) {
-            setShowToast(true);
-            setTimeout(() => {
-                navigate('/camera');
-            }, 3000); // 3 seconds to read the insult
+        // Start Countdown
+        setShowToast(true); // Show the toast first? Or just the countdown? 
+        // User requested "wait for 5 second... and set a count dount"
+        // Let's hide the toast for now or show it alongside.
+        // Let's do the Countdown Overlay immediately.
+        setCountdown(5);
+    };
+
+    React.useEffect(() => {
+        if (countdown === null) return;
+
+        if (countdown > 0) {
+            const timer = setTimeout(() => {
+                setCountdown(countdown - 1);
+            }, 1000);
+            return () => clearTimeout(timer);
         } else {
+            // Countdown finished
             navigate('/camera');
         }
-    };
+    }, [countdown, navigate]);
 
     return (
         <div className="relative w-full h-[100dvh] flex flex-col items-center justify-center bg-black overflow-hidden">
@@ -32,8 +45,32 @@ const LandingPage: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
             </div>
 
-            {/* Sarcastic Toast Overlay */}
-            {showToast && (
+            {/* Countdown Overlay */}
+            {countdown !== null && (
+                <motion.div
+                    key="countdown"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md"
+                >
+                    <motion.div
+                        key={countdown}
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1.5, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-purple-600 drop-shadow-[0_0_50px_rgba(168,85,247,0.5)]"
+                    >
+                        {countdown}
+                    </motion.div>
+                </motion.div>
+            )}
+
+            {/* Sarcastic Toast Overlay (Only if not counting down, or maybe we don't need it if countdown replaces it?) 
+                The user's prompt implies they just want the countdown. Let's keep the toast logic separate but maybe unused or secondary if they conflict.
+                 Actually, let's DISABLE the toast if countdown is active to avoid clutter.
+            */}
+            {showToast && countdown === null && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
