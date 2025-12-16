@@ -2,7 +2,7 @@
 import * as faceapi from 'face-api.js';
 
 export const loadModels = async () => {
-    const MODEL_URL = '/models';
+    const MODEL_URL = import.meta.env.BASE_URL + 'models';
     try {
         await Promise.all([
 

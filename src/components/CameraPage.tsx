@@ -218,11 +218,8 @@ const CameraPage: React.FC = () => {
 
                     // Text Generation
                     let text = "";
-                    let comment = "";
-
                     if (face.geminiResult) {
                         text = `${face.geminiResult.age}y - ${face.geminiResult.gender}`;
-                        comment = face.geminiResult.comment;
                     } else if (face.isAnalyzing && face.analysisStartTime) {
                         const elapsed = ((Date.now() - face.analysisStartTime) / 1000).toFixed(1);
                         text = `Analyzing... ${Math.min(parseFloat(elapsed), 5.0).toFixed(1)}s`;
@@ -253,7 +250,7 @@ const CameraPage: React.FC = () => {
     };
 
     return (
-        <div className="relative w-full h-screen bg-black flex flex-col items-center justify-center overflow-hidden">
+        <div className="relative w-full h-[100dvh] bg-black flex flex-col items-center justify-center overflow-hidden">
             {/* Background elements */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 via-black to-black opacity-80 z-0"></div>
 

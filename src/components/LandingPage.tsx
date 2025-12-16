@@ -20,11 +20,11 @@ const LandingPage: React.FC = () => {
     };
 
     return (
-        <div className="relative w-full h-screen flex flex-col items-center justify-center bg-black overflow-hidden">
+        <div className="relative w-full h-[100dvh] flex flex-col items-center justify-center bg-black overflow-hidden">
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
                 <img
-                    src="/skull_bg.jpg"
+                    src={`${import.meta.env.BASE_URL}skull_bg.jpg`}
                     alt="Skull Background"
                     className="w-full h-full object-cover opacity-50"
                     style={{ filter: 'grayscale(100%) contrast(120%)' }}
