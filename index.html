@@ -11,6 +11,20 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- DEBUGGING: Global Error Handler -->
+    <div id="global-error" style="position:fixed; top:0; left:0; width:100%; height:100%; background:black; color:red; z-index:9999; padding:20px; display:none; font-family:monospace; white-space:pre-wrap;"></div>
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        var errorDiv = document.getElementById('global-error');
+        errorDiv.style.display = 'block';
+        errorDiv.innerHTML += 'Error: ' + message + '\nSource: ' + source + ':' + lineno + '\n\n';
+      };
+      window.onunhandledrejection = function(event) {
+         var errorDiv = document.getElementById('global-error');
+         errorDiv.style.display = 'block';
+         errorDiv.innerHTML += 'Promise Rejection: ' + event.reason + '\n\n';
+      };
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
