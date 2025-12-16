@@ -8,13 +8,75 @@ const LandingPage: React.FC = () => {
     const [dob, setDob] = useState('');
     const [showToast, setShowToast] = useState(false);
     const [countdown, setCountdown] = useState<number | null>(null);
+    const [dobError, setDobError] = useState('');
+
+    const formatDOB = (value: string) => {
+        // Remove non-digits
+        const cleaned = value.replace(/\D/g, '');
+
+        // Format as DD/MM/YYYY
+        let formatted = cleaned;
+        if (cleaned.length > 2) {
+            formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+        }
+        if (cleaned.length > 4) {
+            formatted = formatted.slice(0, 5) + '/' + formatted.slice(5, 9);
+        }
+        return formatted;
+    };
+
+    const validateDOB = (dateString: string): boolean => {
+        if (!dateString) return true; // Optional
+
+        const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+        if (!regex.test(dateString)) return false;
+
+        const parts = dateString.split('/');
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+        const year = parseInt(parts[2], 10);
+
+        const date = new Date(year, month, day);
+        const now = new Date();
+
+        if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
+            return false; // Invalid date (e.g., 31/02/2000)
+        }
+
+        if (year < 1900 || date > now) {
+            return false; // Unreasonable year
+        }
+
+        return true;
+    };
+
+    const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        // Prevent typing more than 10 chars (10/10/1000)
+        if (val.length > 10) return;
+
+        // Handle deletion logic (allow deleting slashes naturally)
+        // If length is less, just set it. If length is more, format it.
+        if (val.length < dob.length) {
+            setDob(val);
+            setDobError('');
+            return;
+        }
+
+        const formatted = formatDOB(val);
+        setDob(formatted);
+        setDobError('');
+    };
 
     const handleAnalyze = () => {
+        // Validate DOB
+        if (dob && !validateDOB(dob)) {
+            setDobError("Wrong DOB. Please fill it again.");
+            return;
+        }
+
         // Start Countdown
-        setShowToast(true); // Show the toast first? Or just the countdown? 
-        // User requested "wait for 5 second... and set a count dount"
-        // Let's hide the toast for now or show it alongside.
-        // Let's do the Countdown Overlay immediately.
+        setShowToast(true);
         setCountdown(5);
     };
 
@@ -66,29 +128,6 @@ const LandingPage: React.FC = () => {
                 </motion.div>
             )}
 
-            {/* Sarcastic Toast Overlay (Only if not counting down, or maybe we don't need it if countdown replaces it?) 
-                The user's prompt implies they just want the countdown. Let's keep the toast logic separate but maybe unused or secondary if they conflict.
-                 Actually, let's DISABLE the toast if countdown is active to avoid clutter.
-            */}
-            {showToast && countdown === null && (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6"
-                >
-                    <div className="bg-zinc-900 border border-red-500/50 p-6 rounded-xl max-w-sm text-center shadow-[0_0_30px_rgba(239,68,68,0.3)]">
-                        <h3 className="text-xl font-bold text-red-500 mb-2">NICE TRY.</h3>
-                        <p className="text-gray-300">
-                            We don't believe you. <br />
-                            <span className="text-white font-medium italic">"People judge you by your face, not your birthday."</span>
-                        </p>
-                        <div className="mt-4 text-xs text-gray-500 animate-pulse">
-                            Analyzing the truth...
-                        </div>
-                    </div>
-                </motion.div>
-            )}
-
             {/* Content Card */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -115,11 +154,15 @@ const LandingPage: React.FC = () => {
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Date of Birth (Optional)</label>
                         <input
                             type="text"
-                            placeholder="e.g. 12/05/1998"
+                            placeholder="DD/MM/YYYY"
                             value={dob}
-                            onChange={(e) => setDob(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 mt-1 text-white placeholder-gray-600 focus:outline-none focus:border-red-500 transition-colors text-center"
+                            onChange={handleDobChange}
+                            maxLength={10}
+                            className={`w-full bg-white/5 border ${dobError ? 'border-red-500 animate-shake' : 'border-white/10'} rounded-lg px-4 py-3 mt-1 text-white placeholder-gray-600 focus:outline-none focus:border-red-500 transition-colors text-center`}
                         />
+                        {dobError && (
+                            <p className="text-red-500 text-xs mt-2 font-bold animate-pulse">{dobError}</p>
+                        )}
                         <p className="text-[10px] text-gray-600 mt-1">*We probably won't use this.</p>
                     </div>
 
@@ -135,6 +178,17 @@ const LandingPage: React.FC = () => {
             <div className="absolute bottom-4 text-xs text-gray-600 z-10">
                 NO REFUNDS ON EMOTIONAL DAMAGE
             </div>
+
+            <style>{`
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-5px); }
+                    75% { transform: translateX(5px); }
+                }
+                .animate-shake {
+                    animation: shake 0.2s ease-in-out 0s 2;
+                }
+            `}</style>
         </div>
     );
 };
