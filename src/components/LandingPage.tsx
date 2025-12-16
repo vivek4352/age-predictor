@@ -7,28 +7,17 @@ const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const [dob, setDob] = useState('');
     const [showToast, setShowToast] = useState(false);
-    const [countdown, setCountdown] = useState<number | null>(null);
 
     const handleAnalyze = () => {
         if (dob.trim().length > 0) {
             setShowToast(true);
-        }
-        setCountdown(5);
-    };
-
-    React.useEffect(() => {
-        if (countdown === null) return;
-
-        if (countdown > 0) {
-            const timer = setTimeout(() => {
-                setCountdown(countdown - 1);
-            }, 1000);
-            return () => clearTimeout(timer);
+            setTimeout(() => {
+                navigate('/camera');
+            }, 3000); // 3 seconds to read the insult
         } else {
-            // Countdown finished
             navigate('/camera');
         }
-    }, [countdown, navigate]);
+    };
 
     return (
         <div className="relative w-full h-[100dvh] flex flex-col items-center justify-center bg-black overflow-hidden">
@@ -43,35 +32,14 @@ const LandingPage: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
             </div>
 
-            {/* Countdown Overlay - Background Layer (z-40) */}
-            {countdown !== null && (
+            {/* Sarcastic Toast Overlay */}
+            {showToast && (
                 <motion.div
-                    key="countdown"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="fixed inset-0 z-40 flex items-center justify-center bg-black/90 backdrop-blur-md"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6"
                 >
-                    <motion.div
-                        key={countdown}
-                        initial={{ scale: 0.5, opacity: 0 }}
-                        animate={{ scale: 1.5, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                        className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-purple-600 drop-shadow-[0_0_50px_rgba(168,85,247,0.5)] select-none"
-                    >
-                        {countdown}
-                    </motion.div>
-                </motion.div>
-            )}
-
-            {/* Sarcastic Toast Overlay - Top Layer (z-50) */}
-            {showToast && countdown !== null && (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8, y: 50 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
-                >
-                    <div className="bg-zinc-900/90 border border-red-500/50 p-6 rounded-xl max-w-sm text-center shadow-[0_0_50px_rgba(239,68,68,0.5)] backdrop-blur-xl">
+                    <div className="bg-zinc-900 border border-red-500/50 p-6 rounded-xl max-w-sm text-center shadow-[0_0_30px_rgba(239,68,68,0.3)]">
                         <h3 className="text-xl font-bold text-red-500 mb-2">NICE TRY.</h3>
                         <p className="text-gray-300">
                             We don't believe you. <br />
