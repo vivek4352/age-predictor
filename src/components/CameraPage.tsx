@@ -17,7 +17,7 @@ const CameraPage: React.FC = () => {
     const [isFinished, setIsFinished] = useState(false); // Track if we are done
     const isFinishedRef = useRef(false); // Ref for the loop
     const isMounted = useRef(true);
-    const requestRef = useRef<number>();
+    const requestRef = useRef<number | undefined>(undefined);
 
     useEffect(() => {
         isMounted.current = true;
