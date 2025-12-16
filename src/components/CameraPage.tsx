@@ -48,11 +48,22 @@ const CameraPage: React.FC = () => {
 
     const trackedFaces = useRef<TrackedFace[]>([]);
 
+    const streamRef = useRef<MediaStream | null>(null);
+
     useEffect(() => {
+        isMounted.current = true;
         const startVideo = () => {
             navigator.mediaDevices
                 .getUserMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 } } })
                 .then((stream) => {
+                    if (!isMounted.current) {
+                        // If unmounted during setup, stop immediately
+                        stream.getTracks().forEach(track => track.stop());
+                        return;
+                    }
+
+                    streamRef.current = stream; // Store reference independent of DOM
+
                     if (videoRef.current) {
                         videoRef.current.srcObject = stream;
                         setIsCameraActive(true);
@@ -67,6 +78,8 @@ const CameraPage: React.FC = () => {
         const init = async () => {
             try {
                 const loaded = await loadModels();
+                if (!isMounted.current) return;
+
                 if (loaded) {
                     setIsModelsLoaded(true);
                     startVideo();
@@ -81,12 +94,15 @@ const CameraPage: React.FC = () => {
         init();
 
         return () => {
-            // Stop Camera Stream
-            if (videoRef.current && videoRef.current.srcObject) {
-                const stream = videoRef.current.srcObject as MediaStream;
-                const tracks = stream.getTracks();
-                tracks.forEach(track => track.stop());
+            isMounted.current = false;
+
+            // Stop Camera Stream safely using the ref
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+                streamRef.current = null;
             }
+
+            if (requestRef.current) cancelAnimationFrame(requestRef.current);
         };
     }, []);
 
