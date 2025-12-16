@@ -6,7 +6,6 @@ import { ScanFace } from 'lucide-react';
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const [dob, setDob] = useState('');
-    const [showToast, setShowToast] = useState(false);
     const [countdown, setCountdown] = useState<number | null>(null);
     const [dobError, setDobError] = useState('');
 
@@ -76,7 +75,6 @@ const LandingPage: React.FC = () => {
         }
 
         // Start Countdown
-        setShowToast(true);
         setCountdown(5);
     };
 
