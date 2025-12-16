@@ -173,7 +173,9 @@ const CameraPage: React.FC = () => {
                                         setIsFinished(true);
                                     } else {
                                         match!.hasFailed = true; // Mark as failed to stop retry loop
-                                        match!.failureReason = response.error || "Failed";
+                                        const reason = response.error || "Failed";
+                                        match!.failureReason = reason;
+                                        setError(reason); // Trigger React Re-render to show Red Box
                                     }
                                     match!.isAnalyzing = false;
                                 });

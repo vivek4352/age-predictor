@@ -128,6 +128,8 @@ export const predictAgeWithGemini = async (imageBase64: string): Promise<{ resul
         }
     } else if (lastError.includes("404")) {
         errorMsg = "AI Models Not Available";
+    } else if (lastError) {
+        errorMsg = lastError; // Show the actual error!
     }
 
     return { result: null, error: errorMsg };
