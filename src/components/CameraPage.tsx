@@ -16,6 +16,16 @@ const CameraPage: React.FC = () => {
     const navigate = useNavigate();
     const [isFinished, setIsFinished] = useState(false); // Track if we are done
     const isFinishedRef = useRef(false); // Ref for the loop
+    const isMounted = useRef(true);
+    const requestRef = useRef<number>();
+
+    useEffect(() => {
+        isMounted.current = true;
+        return () => {
+            isMounted.current = false;
+            if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        };
+    }, []);
 
     // State for tracking faces
     interface TrackedFace {
@@ -105,6 +115,7 @@ const CameraPage: React.FC = () => {
         faceapi.matchDimensions(canvasRef.current, displaySize);
 
         const detect = async () => {
+            if (!isMounted.current) return;
             if (!videoRef.current || !canvasRef.current) return;
 
             // Use TinyFaceDetector for fast tracking (we don't need accurate age from it anymore)
@@ -114,9 +125,11 @@ const CameraPage: React.FC = () => {
                 new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 })
             ); // We don't need .withAgeAndGender() anymore!
 
+            if (!isMounted.current || !canvasRef.current) return;
+
             const resizedDetections = faceapi.resizeResults(detections, displaySize);
 
-            const context = canvasRef.current.getContext('2d');
+            const context = canvasRef.current?.getContext('2d');
             if (context) {
                 context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
@@ -158,6 +171,8 @@ const CameraPage: React.FC = () => {
 
                             if (imageBase64) {
                                 predictAgeWithGemini(imageBase64).then(async (response) => {
+                                    if (!isMounted.current) return; // Prevent state update if unmounted
+
                                     // Artificial delay: Ensure at least 5 seconds of "Analyzing"
                                     const elapsed = Date.now() - match!.analysisStartTime!;
                                     const delay = Math.max(0, 5000 - elapsed);
@@ -165,6 +180,7 @@ const CameraPage: React.FC = () => {
                                     if (delay > 0) {
                                         await new Promise(resolve => setTimeout(resolve, delay));
                                     }
+                                    if (!isMounted.current) return;
 
                                     if (response.result) {
                                         match!.geminiResult = response.result;
@@ -245,7 +261,7 @@ const CameraPage: React.FC = () => {
                 });
             }
 
-            requestAnimationFrame(detect);
+            requestRef.current = requestAnimationFrame(detect);
         };
 
         detect();
