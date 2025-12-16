@@ -66,9 +66,6 @@ const CameraPage: React.FC = () => {
 
         const init = async () => {
             try {
-                // 1. Skip Connection Test (Saves Quota!)
-
-                // 2. Load Face Models
                 const loaded = await loadModels();
                 if (loaded) {
                     setIsModelsLoaded(true);
@@ -82,6 +79,15 @@ const CameraPage: React.FC = () => {
             }
         };
         init();
+
+        return () => {
+            // Stop Camera Stream
+            if (videoRef.current && videoRef.current.srcObject) {
+                const stream = videoRef.current.srcObject as MediaStream;
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+        };
     }, []);
 
     const captureFaceImage = (): string | null => {
