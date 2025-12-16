@@ -6,75 +6,13 @@ import { ScanFace } from 'lucide-react';
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const [dob, setDob] = useState('');
+    const [showToast, setShowToast] = useState(false);
     const [countdown, setCountdown] = useState<number | null>(null);
-    const [dobError, setDobError] = useState('');
-
-    const formatDOB = (value: string) => {
-        // Remove non-digits
-        const cleaned = value.replace(/\D/g, '');
-
-        // Format as DD/MM/YYYY
-        let formatted = cleaned;
-        if (cleaned.length > 2) {
-            formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
-        }
-        if (cleaned.length > 4) {
-            formatted = formatted.slice(0, 5) + '/' + formatted.slice(5, 9);
-        }
-        return formatted;
-    };
-
-    const validateDOB = (dateString: string): boolean => {
-        if (!dateString) return true; // Optional
-
-        const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-        if (!regex.test(dateString)) return false;
-
-        const parts = dateString.split('/');
-        const day = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-        const year = parseInt(parts[2], 10);
-
-        const date = new Date(year, month, day);
-        const now = new Date();
-
-        if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
-            return false; // Invalid date (e.g., 31/02/2000)
-        }
-
-        if (year < 1900 || date > now) {
-            return false; // Unreasonable year
-        }
-
-        return true;
-    };
-
-    const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        // Prevent typing more than 10 chars (10/10/1000)
-        if (val.length > 10) return;
-
-        // Handle deletion logic (allow deleting slashes naturally)
-        // If length is less, just set it. If length is more, format it.
-        if (val.length < dob.length) {
-            setDob(val);
-            setDobError('');
-            return;
-        }
-
-        const formatted = formatDOB(val);
-        setDob(formatted);
-        setDobError('');
-    };
 
     const handleAnalyze = () => {
-        // Validate DOB
-        if (dob && !validateDOB(dob)) {
-            setDobError("Wrong DOB. Please fill it again.");
-            return;
+        if (dob.trim().length > 0) {
+            setShowToast(true);
         }
-
-        // Start Countdown
         setCountdown(5);
     };
 
@@ -105,13 +43,13 @@ const LandingPage: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
             </div>
 
-            {/* Countdown Overlay */}
+            {/* Countdown Overlay - Background Layer (z-40) */}
             {countdown !== null && (
                 <motion.div
                     key="countdown"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md"
+                    className="fixed inset-0 z-40 flex items-center justify-center bg-black/90 backdrop-blur-md"
                 >
                     <motion.div
                         key={countdown}
@@ -119,10 +57,30 @@ const LandingPage: React.FC = () => {
                         animate={{ scale: 1.5, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                        className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-purple-600 drop-shadow-[0_0_50px_rgba(168,85,247,0.5)]"
+                        className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-purple-600 drop-shadow-[0_0_50px_rgba(168,85,247,0.5)] select-none"
                     >
                         {countdown}
                     </motion.div>
+                </motion.div>
+            )}
+
+            {/* Sarcastic Toast Overlay - Top Layer (z-50) */}
+            {showToast && countdown !== null && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+                >
+                    <div className="bg-zinc-900/90 border border-red-500/50 p-6 rounded-xl max-w-sm text-center shadow-[0_0_50px_rgba(239,68,68,0.5)] backdrop-blur-xl">
+                        <h3 className="text-xl font-bold text-red-500 mb-2">NICE TRY.</h3>
+                        <p className="text-gray-300">
+                            We don't believe you. <br />
+                            <span className="text-white font-medium italic">"People judge you by your face, not your birthday."</span>
+                        </p>
+                        <div className="mt-4 text-xs text-gray-500 animate-pulse">
+                            Analyzing the truth...
+                        </div>
+                    </div>
                 </motion.div>
             )}
 
@@ -152,15 +110,11 @@ const LandingPage: React.FC = () => {
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Date of Birth (Optional)</label>
                         <input
                             type="text"
-                            placeholder="DD/MM/YYYY"
+                            placeholder="e.g. 12/05/1998"
                             value={dob}
-                            onChange={handleDobChange}
-                            maxLength={10}
-                            className={`w-full bg-white/5 border ${dobError ? 'border-red-500 animate-shake' : 'border-white/10'} rounded-lg px-4 py-3 mt-1 text-white placeholder-gray-600 focus:outline-none focus:border-red-500 transition-colors text-center`}
+                            onChange={(e) => setDob(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 mt-1 text-white placeholder-gray-600 focus:outline-none focus:border-red-500 transition-colors text-center"
                         />
-                        {dobError && (
-                            <p className="text-red-500 text-xs mt-2 font-bold animate-pulse">{dobError}</p>
-                        )}
                         <p className="text-[10px] text-gray-600 mt-1">*We probably won't use this.</p>
                     </div>
 
@@ -176,17 +130,6 @@ const LandingPage: React.FC = () => {
             <div className="absolute bottom-4 text-xs text-gray-600 z-10">
                 NO REFUNDS ON EMOTIONAL DAMAGE
             </div>
-
-            <style>{`
-                @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    25% { transform: translateX(-5px); }
-                    75% { transform: translateX(5px); }
-                }
-                .animate-shake {
-                    animation: shake 0.2s ease-in-out 0s 2;
-                }
-            `}</style>
         </div>
     );
 };
