@@ -262,16 +262,27 @@ const CameraPage: React.FC = () => {
             )}
 
             {/* Error State */}
-            {error && (
+            {/* Error State */}
+            {(error || trackedFaces.current.some(f => f.hasFailed)) && (
                 <div className="z-20 flex flex-col items-center text-red-500 bg-white/5 p-8 rounded-xl backdrop-blur-md border border-red-500/20">
                     <AlertTriangle className="w-12 h-12 mb-4" />
-                    <p className="text-lg font-bold">{error}</p>
-                    <button
-                        onClick={() => navigate('/')}
-                        className="mt-6 px-6 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
-                    >
-                        Back to Safety
-                    </button>
+                    <p className="text-lg font-bold text-center">
+                        {error || trackedFaces.current.find(f => f.hasFailed)?.failureReason || "Prediction Failed"}
+                    </p>
+                    <div className="flex gap-4 mt-6">
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="px-6 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                        >
+                            Retry
+                        </button>
+                        <button
+                            onClick={() => navigate('/')}
+                            className="px-6 py-2 bg-white/5 hover:bg-white/10 text-gray-400 rounded-lg transition-colors"
+                        >
+                            Back
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -329,9 +340,9 @@ const CameraPage: React.FC = () => {
 
             <button
                 onClick={() => navigate('/')}
-                className="absolute top-8 left-8 z-30 text-gray-500 hover:text-white transition-colors"
+                className="absolute top-8 left-8 z-30 text-gray-500 hover:text-white transition-colors flex items-center gap-2"
             >
-                ← ABORT
+                ← BACK
             </button>
         </div>
     );
